@@ -16,27 +16,24 @@ pub enum TokenVal {
     False,
     Null,
     JString(String),
-    JNumber(f64)
+    JNumber(f64),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     pub value: TokenVal,
-    pub line_no: u64
+    pub line_no: u64,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LexError {
     pub err_msg: String,
-    pub line_no: u64
+    pub line_no: u64,
 }
 
 impl LexError {
     fn new(err_msg: String, line_no: u64) -> LexError {
-        LexError {
-            err_msg,
-            line_no
-        }
+        LexError { err_msg, line_no }
     }
 }
 
@@ -45,7 +42,7 @@ type LexResult = Result<Token, LexError>;
 pub struct Lexer<'a> {
     input: Chars<'a>,
     curr_char: Option<char>,
-    line_no: u64
+    line_no: u64,
 }
 
 impl<'a> Lexer<'a> {
@@ -56,29 +53,26 @@ impl<'a> Lexer<'a> {
         Lexer {
             input: iter,
             curr_char: c,
-            line_no: 1
+            line_no: 1,
         }
     }
 
     fn new_token(&self, value: TokenVal) -> Token {
         Token {
             value: value,
-            line_no: self.line_no
+            line_no: self.line_no,
         }
     }
 
     fn error(&self, err_msg: String) -> Result<(), LexError> {
-        Err(LexError::new(
-            err_msg,
-            self.line_no
-        ))
+        Err(LexError::new(err_msg, self.line_no))
     }
 
     fn throw(&self, err_msg: String) -> LexResult {
         let error = self.error(err_msg);
         match error {
             Err(x) => Err(x),
-            _      => panic!("Lexer::error returned Ok()")
+            _ => panic!("Lexer::error returned Ok()"),
         }
     }
 
@@ -141,7 +135,7 @@ impl<'a> Lexer<'a> {
             ']' => Ok(self.new_token(TokenVal::RBrack)),
             ':' => Ok(self.new_token(TokenVal::Colon)),
             ',' => Ok(self.new_token(TokenVal::Comma)),
-            _   => self.throw("Invalid punctuation".to_string())
+            _ => self.throw("Invalid punctuation".to_string()),
         }
     }
 
@@ -157,13 +151,13 @@ impl<'a> Lexer<'a> {
             match c {
                 '\\' => string.push('\\'),
                 '\"' => string.push('\"'),
-                '/'  => string.push('/'),
-                'b'  => string.push(0x8 as char),
-                'f'  => string.push(0xc as char),
-                'n'  => string.push('\n'),
-                'r'  => string.push('\r'),
-                't'  => string.push('\t'),
-                'u'  => {
+                '/' => string.push('/'),
+                'b' => string.push(0x8 as char),
+                'f' => string.push(0xc as char),
+                'n' => string.push('\n'),
+                'r' => string.push('\r'),
+                't' => string.push('\t'),
+                'u' => {
                     let mut code_pt = String::new();
 
                     for _ in 0..4 {
@@ -175,8 +169,8 @@ impl<'a> Lexer<'a> {
                         }
                     }
 
-                    let num: Result<u16, std::num::ParseIntError> 
-                        = u16::from_str_radix(&code_pt, 16);
+                    let num: Result<u16, std::num::ParseIntError> =
+                        u16::from_str_radix(&code_pt, 16);
                     match num {
                         Ok(x) => {
                             let code_pt = std::char::from_u32(x as u32);
@@ -185,11 +179,11 @@ impl<'a> Lexer<'a> {
                             } else {
                                 self.error(err_msg)?;
                             }
-                        },
-                        Err(_) => self.error(err_msg)?
+                        }
+                        Err(_) => self.error(err_msg)?,
                     }
-                },
-                _    => self.error(err_msg)?
+                }
+                _ => self.error(err_msg)?,
             }
 
             Ok(())
@@ -205,15 +199,16 @@ impl<'a> Lexer<'a> {
 
         while let Some(c) = self.peek() {
             match c {
-                '\x00' ... '\x1f' => self.error(
-                    format!("Invalid character in string: {}", c as u8))?,
+                '\x00'...'\x1f' => {
+                    self.error(format!("Invalid character in string: {}", c as u8))?
+                }
                 '\\' => self.get_escape_char(&mut val)?,
                 '\"' => {
                     self.cont();
 
                     return Ok(self.new_token(TokenVal::JString(val)));
                 }
-                _    => self.eat(&mut val)
+                _ => self.eat(&mut val),
             }
         }
 
@@ -250,7 +245,7 @@ impl<'a> Lexer<'a> {
             't' => self.match_letters("rue", TokenVal::True),
             'f' => self.match_letters("alse", TokenVal::False),
             'n' => self.match_letters("ull", TokenVal::Null),
-            _   => self.throw("Invalid keyword".to_string())
+            _ => self.throw("Invalid keyword".to_string()),
         }
     }
 
@@ -260,7 +255,7 @@ impl<'a> Lexer<'a> {
         }
 
         while self.match_any("0123456789") {
-             self.eat(string);
+            self.eat(string);
         }
 
         Ok(())
@@ -290,21 +285,21 @@ impl<'a> Lexer<'a> {
 
             self.need_digit(&mut val)?;
         }
-        
+
         if self.match_any("eE") {
             self.eat(&mut val);
 
             if self.match_any("-+") {
                 self.eat(&mut val);
             }
-            
+
             self.need_digit(&mut val)?;
         }
 
         let val: Result<f64, std::num::ParseFloatError> = val.parse();
         match val {
             Ok(val) => Ok(self.new_token(TokenVal::JNumber(val))),
-            Err(_) => self.throw("Invalid floating-point literal".to_string())
+            Err(_) => self.throw("Invalid floating-point literal".to_string()),
         }
     }
 

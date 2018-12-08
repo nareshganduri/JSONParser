@@ -1,7 +1,8 @@
-extern crate jsonparser;
+use jsonparser;
 
 fn main() {
-    let x = jsonparser::parse(r#"[
+    let x = jsonparser::parse(
+        r#"[
         4.5, null, "hello world", true, { "key1": false },
         [ false, true, "hello", null],
         {
@@ -9,6 +10,8 @@ fn main() {
             "key2": false,
             "key3": [0, 1, 2, 3]
         }
-    ]"#).unwrap();
+    ]"#,
+    )
+    .unwrap();
     println!("{}", x);
 }

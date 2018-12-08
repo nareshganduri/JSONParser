@@ -1,5 +1,5 @@
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum JSON {
@@ -8,7 +8,7 @@ pub enum JSON {
     JSONNull,
     JSONBool(bool),
     JSONArray(Vec<JSON>),
-    JSONObject(HashMap<String, JSON>)
+    JSONObject(HashMap<String, JSON>),
 }
 
 impl fmt::Display for JSON {
@@ -27,7 +27,7 @@ impl fmt::Display for JSON {
                     write!(f, "{}", elem).unwrap();
                 }
                 write!(f, "]")
-            },
+            }
             &JSON::JSONObject(ref x) => {
                 write!(f, "{{").unwrap();
                 for (i, (key, val)) in x.iter().enumerate() {

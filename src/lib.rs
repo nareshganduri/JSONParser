@@ -5,7 +5,7 @@ pub mod json;
 mod lexer;
 mod parser;
 
-use parser::{Parser, ParseResult};
+use crate::parser::{ParseResult, Parser};
 
 pub fn parse(input: &str) -> ParseResult {
     let mut parser = Parser::new(input);

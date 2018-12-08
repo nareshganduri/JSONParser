@@ -1,4 +1,4 @@
-use lexer::{Lexer, LexError, TokenVal};
+use crate::lexer::{LexError, Lexer, TokenVal};
 
 #[test]
 fn test_eof() {
@@ -12,7 +12,7 @@ fn test_eof() {
 #[test]
 fn test_puncts() {
     let mut lexer = Lexer::new("{}[]:,");
-    
+
     let actual = lexer.next_token().unwrap();
     let expected = TokenVal::LBrace;
     assert_eq!(actual.value, expected);
@@ -61,9 +61,10 @@ fn test_string_eof() {
     let mut lexer = Lexer::new("\"hello world");
     let actual = lexer.next_token();
     let expected = Err(LexError::new(
-        "Unexpected EOF while parsing string".to_string(), 1
+        "Unexpected EOF while parsing string".to_string(),
+        1,
     ));
-    
+
     assert_eq!(actual, expected);
 }
 
@@ -89,9 +90,7 @@ fn test_complex_float() {
 fn test_bad_float() {
     let mut lexer = Lexer::new("33.");
     let actual = lexer.next_token();
-    let expected = Err(LexError::new(
-        "Need at least one digit".to_string(), 1
-    ));
+    let expected = Err(LexError::new("Need at least one digit".to_string(), 1));
 
     assert_eq!(actual, expected);
 }
@@ -99,7 +98,7 @@ fn test_bad_float() {
 #[test]
 fn test_bools() {
     let mut lexer = Lexer::new("true false");
-    
+
     let actual = lexer.next_token().unwrap();
     let expected = TokenVal::True;
     assert_eq!(actual.value, expected);
@@ -113,9 +112,7 @@ fn test_bools() {
 fn test_invalid_keyword() {
     let mut lexer = Lexer::new("hello");
     let actual = lexer.next_token();
-    let expected = Err(LexError::new(
-        "Invalid character".to_string(), 1
-    ));
+    let expected = Err(LexError::new("Invalid character".to_string(), 1));
 
     assert_eq!(actual, expected);
 }

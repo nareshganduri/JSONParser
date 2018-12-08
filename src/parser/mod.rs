@@ -1,5 +1,5 @@
-use lexer::{Lexer, Token, TokenVal};
-use json::JSON;
+use crate::json::JSON;
+use crate::lexer::{Lexer, Token, TokenVal};
 
 use std::collections::HashMap;
 
@@ -9,15 +9,12 @@ mod tests;
 #[derive(Debug, PartialEq)]
 pub struct ParseError {
     err_msg: String,
-    line_no: u64
+    line_no: u64,
 }
 
 impl ParseError {
     fn new(err_msg: String, line_no: u64) -> Self {
-        ParseError {
-            err_msg,
-            line_no
-        }
+        ParseError { err_msg, line_no }
     }
 }
 
@@ -25,7 +22,7 @@ pub type ParseResult = Result<JSON, ParseError>;
 
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
-    curr_token: Option<Token>
+    curr_token: Option<Token>,
 }
 
 impl<'a> Parser<'a> {
@@ -34,7 +31,7 @@ impl<'a> Parser<'a> {
 
         Parser {
             lexer,
-            curr_token: None
+            curr_token: None,
         }
     }
 
@@ -43,10 +40,8 @@ impl<'a> Parser<'a> {
             Ok(token) => {
                 self.curr_token = Some(token);
                 Ok(())
-            },
-            Err(err) => {
-                self.error(err.err_msg, err.line_no)
             }
+            Err(err) => self.error(err.err_msg, err.line_no),
         }
     }
 
@@ -87,7 +82,9 @@ impl<'a> Parser<'a> {
         match token.value {
             TokenVal::JString(x) => Ok(x),
             _ => Err(ParseError::new(
-                "Expecting string".to_string(), token.line_no))
+                "Expecting string".to_string(),
+                token.line_no,
+            )),
         }
     }
 
@@ -105,14 +102,15 @@ impl<'a> Parser<'a> {
 
         while self.matches(TokenVal::Comma)? {
             let key = self.get_string()?;
-            self.expect(TokenVal::Colon, 
-                "Expecting colon after key".to_string())?;
+            self.expect(TokenVal::Colon, "Expecting colon after key".to_string())?;
             let val = self.parse_elem()?;
             obj.insert(key, val);
         }
 
-        self.expect(TokenVal::RBrace, 
-            "Expecting right brace at end of object".to_string())?;
+        self.expect(
+            TokenVal::RBrace,
+            "Expecting right brace at end of object".to_string(),
+        )?;
 
         Ok(JSON::JSONObject(obj))
     }
@@ -131,9 +129,11 @@ impl<'a> Parser<'a> {
             let elem = self.parse_elem()?;
             arr.push(elem);
         }
-        
-        self.expect(TokenVal::RBrack, 
-            "Expecting right bracket at end of array".to_string())?;
+
+        self.expect(
+            TokenVal::RBrack,
+            "Expecting right bracket at end of array".to_string(),
+        )?;
 
         Ok(JSON::JSONArray(arr))
     }
@@ -150,7 +150,7 @@ impl<'a> Parser<'a> {
             TokenVal::Null => Ok(JSON::JSONNull),
             TokenVal::JString(x) => Ok(JSON::JSONString(x)),
             TokenVal::JNumber(x) => Ok(JSON::JSONNum(x)),
-            _ => self.throw("Unexpected token".to_string(), token.line_no)
+            _ => self.throw("Unexpected token".to_string(), token.line_no),
         }
     }
 
